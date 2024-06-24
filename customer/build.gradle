@@ -1,0 +1,83 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.2.6'
+	id 'io.spring.dependency-management' version '1.1.5'
+	id 'com.github.johnrengelman.shadow' version '7.1.2' // Shadow plugin for Uber JAR
+}
+
+group = 'crm-customer'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+	maven { url 'https://repo.spring.io/milestone' }
+}
+
+ext {
+	set('springAiVersion', "1.0.0-M1")
+	set('springCloudVersion', "2023.0.2")
+}
+
+// Commenting out Docker Compose configuration
+// dockerCompose {
+//     useComposeFiles = ['docker-compose.yml']
+//     startedServices = ['database', 'app']
+//     waitForTcpPorts = true
+//     captureContainersOutput = true
+//     captureContainersOutputToFile = new File("${projectDir}/build/dockerLogs")
+// }
+
+dependencies {
+	implementation('org.springframework.boot:spring-boot-starter') {
+		exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+		exclude group: 'org.apache.logging.log4j', module: 'log4j-slf4j2-impl'
+	}
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation ('org.springframework.boot:spring-boot-starter-webflux')
+
+	// Exclude log4j-slf4j2-impl if present
+	implementation ('org.springframework.boot:spring-boot-starter-log4j2') {
+		exclude group: 'org.apache.logging.log4j', module: 'log4j-slf4j2-impl'
+	}
+
+	implementation 'io.jsonwebtoken:jjwt:0.9.1'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	implementation 'org.springframework.security:spring-security-config'
+	implementation("jakarta.servlet:jakarta.servlet-api:5.0.0")
+
+	implementation 'io.springfox:springfox-swagger-ui:3.0.0'
+	implementation 'io.springfox:springfox-swagger2:3.0.0'
+	implementation 'com.nimbusds:nimbus-jose-jwt:9.13' // Replace with the latest version
+	runtimeOnly 'com.h2database:h2'
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+	testImplementation 'org.springframework.security:spring-security-test'
+	// Remove the Docker Compose dependency
+	// developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
+	runtimeOnly 'org.postgresql:postgresql'
+}
+
+dependencyManagement {
+	imports {
+		mavenBom "org.springframework.ai:spring-ai-bom:${springAiVersion}"
+		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+	}
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
